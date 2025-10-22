@@ -1,35 +1,25 @@
-name: 'Hello World'
-description: 'Greet someone'
+name: 'Teams Notifier'
+description: 'Send a Microsoft Teams notification'
 inputs:
-  who-to-greet:  # id of input
-    description: 'Who to greet'
+  notification_title:
     required: true
-    default: 'World'
-outputs:
-  random-number:
-    description: "Random number"
-    value: ${{ steps.random-number-generator.outputs.random-number }}
+  action_required_message:
+    required: false
+    default: '⚠️ Action Required'
+  card_color:
+    required: false
+    default: 'Accent'
+  files:
+    required: false
 runs:
-  using: "composite"
+  using: 'composite'
   steps:
-    - name: Set Greeting
-      run: echo "Hello $INPUT_WHO_TO_GREET."
+    - name: Run Teams Notification Script
       shell: bash
-      env:
-        INPUT_WHO_TO_GREET: ${{ inputs.who-to-greet }}
-
-    - name: Random Number Generator
-      id: random-number-generator
-      run: echo "random-number=$(echo $RANDOM)" >> $GITHUB_OUTPUT
-      shell: bash
-
-    - name: Set GitHub Path
-      run: echo "$GITHUB_ACTION_PATH" >> $GITHUB_PATH
-      shell: bash
-      env:
-        GITHUB_ACTION_PATH: ${{ github.action_path }}
-
-    - name: Run goodbye.sh
-      run: goodbye.sh
-      shell: bash
-
+      run: |
+        chmod +x $GITHUB_ACTION_PATH/goodbye.sh
+        $GITHUB_ACTION_PATH/goodbye.sh \
+          "${{ inputs.notification_title }}" \
+          "${{ inputs.action_required_message }}" \
+          "${{ inputs.card_color }}" \
+          "${{ inputs.files }}"
