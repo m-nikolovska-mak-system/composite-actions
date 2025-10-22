@@ -1,0 +1,38 @@
+#!/bin/bash
+set -e
+
+WATCHED_PATH="$1"
+
+echo "🔍 Checking for changes in: $WATCHED_PATH"
+
+# Get current and previous tags
+CURRENT_TAG="${GITHUB_REF_NAME}"
+PREV_TAG=$(git tag --sort=-creatordate | grep -B1 "$CURRENT_TAG" | head -n1 || true)
+
+if [ -z "$PREV_TAG" ] || [ "$PREV_TAG" = "$CURRENT_TAG" ]; then
+  echo "ℹ️ No previous tag found — treating as initial release."
+  CHANGED=$(git ls-tree -r --name-only "$CURRENT_TAG")
+else
+  echo "🔁 Comparing changes between $PREV_TAG → $CURRENT_TAG"
+  CHANGED=$(git diff --name-only "$PREV_TAG" "$CURRENT_TAG")
+fi
+
+if [ -z "$CHANGED" ]; then
+  echo "⚠️ No files changed between tags."
+  echo "found=false" >> $GITHUB_OUTPUT
+  echo "files=" >> $GITHUB_OUTPUT
+  exit 0
+fi
+
+if echo "$CHANGED" | grep -q "$WATCHED_PATH"; then
+  echo "✅ Path '$WATCHED_PATH' changed!"
+  echo "found=true" >> $GITHUB_OUTPUT
+else
+  echo "ℹ️ Path '$WATCHED_PATH' not changed."
+  echo "found=false" >> $GITHUB_OUTPUT
+fi
+
+echo "files<<EOF" >> $GITHUB_OUTPUT
+echo "$CHANGED" >> $GITHUB_OUTPUT
+echo "EOF" >> $GITHUB_OUTPUT
+``
