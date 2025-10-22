@@ -1,0 +1,19 @@
+name: 'Detect File Change'
+description: 'Checks if a specific file or path changed between the previous and current release tags'
+inputs:
+  watched_path:
+    description: 'File or directory path to monitor'
+    required: true
+outputs:
+  found:
+    description: 'true if the file/path changed, false otherwise'
+  files:
+    description: 'List of changed files'
+runs:
+  using: 'composite'
+  steps:
+    - name: Run detection script
+      shell: bash
+      run: |
+        chmod +x $GITHUB_ACTION_PATH/detect.sh
+        $GITHUB_ACTION_PATH/detect.sh "${{ inputs.watched_path }}"
